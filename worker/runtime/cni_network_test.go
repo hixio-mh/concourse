@@ -3,9 +3,14 @@ package runtime_test
 import (
 	"context"
 	"errors"
+	"io/ioutil"
+	"os"
+	"path"
+
+	"code.cloudfoundry.org/localip"
 	"github.com/concourse/concourse/worker/runtime"
-	"github.com/concourse/concourse/worker/runtime/libcontainerd/libcontainerdfakes"
 	"github.com/concourse/concourse/worker/runtime/iptables/iptablesfakes"
+	"github.com/concourse/concourse/worker/runtime/libcontainerd/libcontainerdfakes"
 	"github.com/concourse/concourse/worker/runtime/runtimefakes"
 	"github.com/opencontainers/runtime-spec/specs-go"
 	"github.com/stretchr/testify/require"
@@ -100,20 +105,53 @@ func (s *CNINetworkSuite) TestSetupMountsReturnsMountpoints() {
 	})
 }
 
-func (s *CNINetworkSuite) TestSetupMountsCallsStoreWithNoNameServer() {
+func (s *CNINetworkSuite) TestParseHostResolvConf() {
 	network, err := runtime.NewCNINetwork(
 		runtime.WithCNIFileStore(s.store),
 	)
 	s.NoError(err)
 
-	_, err = network.SetupMounts("some-handle")
+	file := `
+nameserver 8.8.8.8
+nameserver 127.0.0.16
+nameserver something 9.9.9.9
+search something
+`
+
+	tmpDir, _ := ioutil.TempDir("", "test-resolv")
+	defer os.RemoveAll(tmpDir)
+	ioutil.WriteFile(path.Join(tmpDir, "resolv.conf"), []byte(file), 0644)
+
+	ns, oe, err := network.ParseHostResolveConf(path.Join(tmpDir, "resolv.conf"))
 	s.NoError(err)
 
-	_, resolvConfContents := s.store.CreateArgsForCall(1)
-	s.Equal(resolvConfContents, []byte("nameserver 8.8.8.8\n"))
+	s.Equal([]string{"8.8.8.8"}, ns)
+	s.Equal([]string{"search something"}, oe)
+
 }
 
-func (s *CNINetworkSuite) TestSetupMountsCallsStoreWithOneNameServer() {
+func (s *CNINetworkSuite) TestParseHostResolvConfWithLoopback() {
+	network, err := runtime.NewCNINetwork(
+		runtime.WithCNIFileStore(s.store),
+	)
+	s.NoError(err)
+
+	file := `nameserver 127.0.0.1`
+
+	tmpDir, _ := ioutil.TempDir("", "test-resolv-noloopback")
+	defer os.RemoveAll(tmpDir)
+	ioutil.WriteFile(path.Join(tmpDir, "resolv.conf"), []byte(file), 0644)
+
+	ns, oe, err := network.ParseHostResolveConf(path.Join(tmpDir, "resolv.conf"))
+	s.NoError(err)
+
+	ip, _ := localip.LocalIP()
+	s.Equal([]string{ip}, ns)
+	s.Equal([]string{}, oe)
+
+}
+
+func (s *CNINetworkSuite) TestSetupMountsCallsStoreWithNameServers() {
 	network, err := runtime.NewCNINetwork(
 		runtime.WithCNIFileStore(s.store),
 		runtime.WithNameServers([]string{"6.6.7.7", "1.2.3.4"}),

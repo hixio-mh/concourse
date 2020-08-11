@@ -3,8 +3,12 @@ package runtime
 import (
 	"context"
 	"fmt"
+	"io/ioutil"
 	"path/filepath"
+	"regexp"
+	"strings"
 
+	"code.cloudfoundry.org/localip"
 	"github.com/concourse/concourse/worker/runtime/iptables"
 	"github.com/containerd/containerd"
 	"github.com/containerd/go-cni"
@@ -49,7 +53,7 @@ const (
 var (
 	// defaultNameServers is the default set of nameservers used.
 	//
-	defaultNameServers = []string{"8.8.8.8"}
+	defaultNameServers = []string{}
 
 	// defaultCNINetworkConfig is the default configuration for the CNI network
 	// created to put concourse containers into.
@@ -207,7 +211,7 @@ func NewCNINetwork(opts ...CNINetworkOpt) (*cniNetwork, error) {
 		n.ipt, err = iptables.New()
 
 		if err != nil {
-			return nil, fmt.Errorf("failed to initialized iptables")
+			return nil, fmt.Errorf("failed to initialize iptables")
 		}
 	}
 
@@ -227,9 +231,14 @@ func (n cniNetwork) SetupMounts(handle string) ([]specs.Mount, error) {
 		return nil, fmt.Errorf("creating /etc/hosts: %w", err)
 	}
 
+	resolvContents, err := n.generateResolvConfContents()
+	if err != nil {
+		return nil, fmt.Errorf("generating resolv.conf: %w", err)
+	}
+
 	resolvConf, err := n.store.Create(
 		filepath.Join(handle, "/resolv.conf"),
-		n.generateResolvConfContents(),
+		resolvContents,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("creating /etc/resolv.conf: %w", err)
@@ -273,13 +282,68 @@ func (n cniNetwork) SetupRestrictedNetworks() error {
 	return nil
 }
 
-func (n cniNetwork) generateResolvConfContents() []byte {
+func (n cniNetwork) ParseHostResolveConf(path string) ([]string, []string, error) {
+
+	resolvConf, err := ioutil.ReadFile(path)
+	if err != nil {
+		return nil, nil, fmt.Errorf("unable to read host's resolv.conf: %w", err)
+	}
+
+	resolvContents := string(resolvConf)
+
+	loopbackNameserver := regexp.MustCompile(`^\s*nameserver\s+127\.0\.0\.\d+\s*$`)
+	if loopbackNameserver.MatchString(resolvContents) {
+		ip, err := localip.LocalIP()
+		if err != nil {
+			return nil, nil, err
+		}
+		return []string{ip}, []string{}, nil
+	}
+
+	var entries, nameservers []string
+
+	for _, resolvEntry := range strings.Split(strings.TrimSpace(resolvContents), "\n") {
+		if resolvEntry == "" {
+			continue
+		}
+
+		if !strings.HasPrefix(resolvEntry, "nameserver") {
+			entries = append(entries, strings.TrimSpace(resolvEntry))
+			continue
+		}
+
+		pattern := regexp.MustCompile(`127\.\d{1,3}\.\d{1,3}\.\d{1,3}`)
+		if !pattern.MatchString(strings.TrimSpace(resolvEntry)) {
+			nameserverFields := strings.Fields(resolvEntry)
+			if len(nameserverFields) != 2 {
+				continue
+			}
+			nameservers = append(nameservers, nameserverFields[1])
+		}
+	}
+
+	return nameservers, entries, nil
+}
+
+func (n cniNetwork) generateResolvConfContents() ([]byte, error) {
 	contents := ""
-	for _, n := range n.nameServers {
+	resolvConfNameservers := n.nameServers
+	var otherEntries []string
+	var err error
+
+	if len(n.nameServers) == 0 {
+		resolvConfNameservers, otherEntries, err = n.ParseHostResolveConf("/etc/resolv.conf")
+	}
+
+	for _, n := range resolvConfNameservers {
 		contents = contents + "nameserver " + n + "\n"
 	}
 
-	return []byte(contents)
+	for _, e := range otherEntries {
+		contents = contents + e + "\n"
+	}
+
+	return []byte(contents), err
 }
 
 func (n cniNetwork) Add(ctx context.Context, task containerd.Task) error {
