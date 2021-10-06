@@ -14,7 +14,7 @@
     "child-process-promise": "^2.2.1",
     "clean-css-cli": "^4.3.0",
     "elm": "^0.19.1",
-    "elm-analyse": "stil4m/elm-analyse#1ced133fa266fca45027e007e573badedb62a225",
+    "elm-analyse": "0.16.5",
     "elm-format": "0.8.2",
     "elm-test": "^0.19.1",
     "less": "^3.10.3",
