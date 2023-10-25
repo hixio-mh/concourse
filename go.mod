@@ -34,7 +34,6 @@ require (
 	github.com/coreos/go-iptables v0.4.5
 	github.com/coreos/go-oidc v2.0.0+incompatible // indirect
 	github.com/cppforlife/go-semi-semantic v0.0.0-20160921010311-576b6af77ae4
-	github.com/creack/pty v1.1.9 // indirect
 	github.com/cyberark/conjur-api-go v0.6.0
 	github.com/docker/distribution v2.7.1+incompatible // indirect
 	github.com/docker/go-events v0.0.0-20190806004212-e31b211e4f1c // indirect
@@ -45,7 +44,7 @@ require (
 	github.com/gobuffalo/packr v1.13.7
 	github.com/gogo/googleapis v1.3.1 // indirect
 	github.com/gogo/protobuf v1.3.1
-	github.com/golang/groupcache v0.0.0-20191027212112-611e8accdfc9
+	github.com/golang/groupcache v0.0.0-20200121045136-8c9f03a8e57e
 	github.com/google/jsonapi v0.0.0-20180618021926-5d047c6bc66b
 	github.com/googleapis/gnostic v0.3.1 // indirect
 	github.com/gophercloud/gophercloud v0.10.0 // indirect
@@ -62,13 +61,12 @@ require (
 	github.com/influxdata/influxdb1-client v0.0.0-20190118215656-f8cdb5d5f175
 	github.com/jessevdk/go-flags v1.4.0
 	github.com/json-iterator/go v1.1.7 // indirect
-	github.com/klauspost/compress v1.9.7
+	github.com/klauspost/compress v1.15.9
 	github.com/kr/pty v1.1.8
 	github.com/krishicks/yaml-patch v0.0.10
 	github.com/lib/pq v1.3.0
 	github.com/mattn/go-colorable v0.1.6
-	github.com/mattn/go-isatty v0.0.12
-	github.com/mattn/go-sqlite3 v1.10.0 // indirect
+	github.com/mattn/go-isatty v0.0.16
 	github.com/maxbrunsfeld/counterfeiter/v6 v6.2.3
 	github.com/mgutz/ansi v0.0.0-20170206155736-9520e82c474b
 	github.com/miekg/dns v1.1.6
@@ -82,7 +80,7 @@ require (
 	github.com/opencontainers/runtime-spec v1.0.1
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/peterhellberg/link v1.0.0
-	github.com/pkg/errors v0.8.1
+	github.com/pkg/errors v0.9.1
 	github.com/pkg/term v0.0.0-20190109203006-aa71e9d9e942
 	github.com/pquerna/cachecontrol v0.0.0-20180517163645-1555304b9b35 // indirect
 	github.com/prometheus/client_golang v0.9.3
@@ -90,7 +88,7 @@ require (
 	github.com/sirupsen/logrus v1.4.2
 	github.com/skratchdot/open-golang v0.0.0-20160302144031-75fb7ed4208c
 	github.com/square/certstrap v1.1.1
-	github.com/stretchr/testify v1.4.0
+	github.com/stretchr/testify v1.8.3
 	github.com/syndtr/gocapability v0.0.0-20180916011248-d98352740cb2 // indirect
 	github.com/tedsuo/ifrit v0.0.0-20180802180643-bea94bb476cc
 	github.com/tedsuo/rata v1.0.1-0.20170830210128-07d200713958
@@ -100,18 +98,14 @@ require (
 	github.com/vito/houdini v1.1.1
 	github.com/vito/twentythousandtonnesofcrudeoil v0.0.0-20180305154709-3b21ad808fcb
 	go.etcd.io/bbolt v1.3.3 // indirect
-	go.opencensus.io v0.22.2 // indirect
 	go.opentelemetry.io/otel v0.2.1
 	go.opentelemetry.io/otel/exporter/trace/jaeger v0.2.1
 	go.opentelemetry.io/otel/exporter/trace/stackdriver v0.2.1
-	golang.org/x/crypto v0.0.0-20200220183623-bac4c82f6975
-	golang.org/x/net v0.0.0-20200506145744-7e3656a0809f // indirect
-	golang.org/x/oauth2 v0.0.0-20190604053449-0f29369cfe45
-	golang.org/x/sync v0.0.0-20190911185100-cd5d95a43a6e
-	golang.org/x/sys v0.0.0-20200509044756-6aff5f38e54f // indirect
-	golang.org/x/time v0.0.0-20190308202827-9d24e82272b4
-	google.golang.org/genproto v0.0.0-20191223191004-3caeed10a8bf // indirect
-	google.golang.org/grpc v1.26.0
+	golang.org/x/crypto v0.0.0-20211108221036-ceb1ce70b4fa
+	golang.org/x/oauth2 v0.7.0
+	golang.org/x/sync v0.1.0
+	golang.org/x/time v0.3.0
+	google.golang.org/grpc v1.56.3
 	gopkg.in/asn1-ber.v1 v1.0.0-20181015200546-f715ec2f112d // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/square/go-jose.v2 v2.3.1
